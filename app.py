@@ -43,6 +43,12 @@ def crear_tarea_web():
     return render_template("formulario_tarea.html", proyectos=proyectos)
 
 
+@app.route("/tarea/<int:tarea_id>/cambiar_estado", methods=["POST"])
+def completar_tarea(tarea_id):
+    db_manager.actualizar_estado_tarea(tarea_id, "Completada")
+    return redirect(url_for("index"))
+
+
 if __name__ == "main":
 
     db_manager.crear_tablas()

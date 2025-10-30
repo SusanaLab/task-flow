@@ -32,7 +32,7 @@
             </small>
           </div>
 
-          <a href="#" class="action-button">Completar</a>
+          <a href={url_for('completar_tarea',tarea_id=tarea._id)} class="action-button">Completar</a>
         </li>
         {% else %}
         <li class="task-item">

@@ -2,7 +2,7 @@ import sqlite3
 from .modelos import Tarea, Proyecto
 import os
 
-DATABASE_NAME = 'tareas.db'
+DATABASE_NAME = "tareas.db"
 
 
 def get_connection():
@@ -16,7 +16,8 @@ def crear_tablas():
     cursor = conn.cursor()
 
     # Tabla proyectos
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS proyectos (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre TEXT NOT NULL,
@@ -24,10 +25,12 @@ def crear_tablas():
             fecha_inicio TEXT,
             estado TEXT
         )
-    """)
+    """
+    )
 
     # Tabla tareas
-    cursor.execute("""
+    cursor.execute(
+        """
         CREATE TABLE IF NOT EXISTS tareas (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             titulo TEXT NOT NULL,
@@ -39,11 +42,13 @@ def crear_tablas():
             proyecto_id INTEGER,
             FOREIGN KEY (proyecto_id) REFERENCES proyectos(id)
         )
-    """)
+    """
+    )
 
     try:
         cursor.execute(
-            "INSERT INTO proyectos (id, nombre, descripcion, estado) VALUES (0, 'Tareas Generales', 'Tareas sin clasificar', 'Activo')")
+            "INSERT INTO proyectos (id, nombre, descripcion, estado) VALUES (0, 'Tareas Generales', 'Tareas sin clasificar', 'Activo')"
+        )
     except sqlite3.IntegrityError:
         pass
 
@@ -60,10 +65,21 @@ class DBManager:
         conn = get_connection()
         cursor = conn.cursor()
 
-        cursor.execute("""
+        cursor.execute(
+            """
             INSERT INTO tareas(titulo, descripcion, fecha_creacion, fecha_limite, prioridad, estado, proyecto_id)
             VALUES(?, ?, ?, ?, ?, ?, ?)
-        """, (tarea._titulo, tarea._descripcion, tarea._fecha_creacion, tarea._fecha_limite, tarea._prioridad, tarea._estado, tarea._proyecto_id))
+        """,
+            (
+                tarea._titulo,
+                tarea._descripcion,
+                tarea._fecha_creacion,
+                tarea._fecha_limite,
+                tarea._prioridad,
+                tarea._estado,
+                tarea._proyecto_id,
+            ),
+        )
 
         tarea.id = cursor.lastrowid
         conn.commit()
@@ -78,8 +94,12 @@ class DBManager:
         conn.close()
 
         proyectos = [
-            Proyecto(nombre=fila['nombre'], descripcion=fila['descripcion'],
-                     id=fila['id'], estado=fila['estado'])
+            Proyecto(
+                nombre=fila["nombre"],
+                descripcion=fila["descripcion"],
+                id=fila["id"],
+                estado=fila["estado"],
+            )
             for fila in filas
         ]
         return proyectos
@@ -104,28 +124,46 @@ class DBManager:
         tareas = []
         for fila in filas:
             t = Tarea(
-                titulo=fila['titulo'],
-                fecha_limite=fila['fecha_limite'],
-                prioridad=fila['prioridad'],
-                proyecto_id=fila['proyecto_id'],
-                estado=fila['estado'],
-                descripcion=fila['descripcion'],
-                fecha_creacion=fila['fecha_creacion'],
-                id=fila['id']
+                titulo=fila["titulo"],
+                fecha_limite=fila["fecha_limite"],
+                prioridad=fila["prioridad"],
+                proyecto_id=fila["proyecto_id"],
+                estado=fila["estado"],
+                descripcion=fila["descripcion"],
+                fecha_creacion=fila["fecha_creacion"],
+                id=fila["id"],
             )
             tareas.append(t)
         return tareas
 
 
-if __name__ == '__main__':
+def actualizar_tarea_estado(tarea_id: int, nuevo_estado: str):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        """
+        UPDATE tareas
+        SET estado = ?
+        WHERE id = ?
+    """,
+        (nuevo_estado, tarea_id),
+    )
+
+    updated = cursor.rowcount > 0
+    conn.commit()
+    conn.close()
+    return updated
+
+
+if __name__ == "__main__":
     # Bloque de prueba para la clase
     if os.path.exists(DATABASE_NAME):
         os.remove(DATABASE_NAME)
         print(f"Base de datos {DATABASE_NAME} eliminada.")
 
     crear_tablas()
-    print(
-        f"Base de datos {DATABASE_NAME} y tablas inicializadas correctamente.")
+    print(f"Base de datos {DATABASE_NAME} y tablas inicializadas correctamente.")
 
     # Prueba del CRUD (CREATE)
     manager = DBManager()
@@ -134,7 +172,7 @@ if __name__ == '__main__':
         fecha_limite="2025-10-30",
         prioridad="Alta",
         proyecto_id=0,
-        descripcion="Implementar el módulo database.py"
+        descripcion="Implementar el módulo database.py",
     )
 
     tarea_creada = manager.crear_tarea(tarea_prueba)
